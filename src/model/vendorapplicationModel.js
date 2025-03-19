@@ -37,6 +37,17 @@ const vendorapplicationSchema = new mongoose.Schema({
         enum: ["pending", "approved", "rejected"],
         default: "pending",
       },
+      delivery_start_time: {
+        type: Date,
+      },
+      delivery_end_time: {
+        type: Date,
+      },
+      deliverable_water_cans: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Watercan",
+      }],
+
   
     createdAt: {
         type: Date,
