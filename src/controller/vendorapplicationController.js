@@ -2,7 +2,7 @@ const vendorApplication = require("../model/vendorapplicationModel");
 
 const createApplication = async (req, res) => {
   try {
-    const { name, email, state, address, phoneNumber, pincode, city } = req.body;
+    const { name, email, state, address, phoneNumber, pincode, city ,delivery_start_time,delivery_end_time,deliverable_water_cans} = req.body;
 
     if (
       !name ||
@@ -11,7 +11,10 @@ const createApplication = async (req, res) => {
       !address ||
       !phoneNumber ||
       !pincode ||
-      !city
+      !city||
+      !delivery_start_time||
+      !delivery_end_time||
+      !deliverable_water_cans
     ) {
       return res
         .status(400)
@@ -33,6 +36,9 @@ const createApplication = async (req, res) => {
       phoneNumber,
       pincode,
       city,
+      delivery_start_time,
+      delivery_end_time,
+      deliverable_water_cans,
       status: "pending",
     });
     res.status(201).json({

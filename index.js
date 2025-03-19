@@ -10,14 +10,13 @@ connectDB();
 // Middleware (e.g. body parser)
 app.use(express.json());
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+const userRoutes = require('./src/routes/userRoutes');
+const watercanRoutes = require('./src/routes/watercanRoutes');
+const vendorapplicationRoutes = require('./src/routes/vendorapplicationRoutes');
 
-
-app.use('/api/watercan', require('./src/routes/watercanRoutes'));
-app.use('/api/vendorapplication', require('./src/routes/vendorapplicationRoutes'));
+app.use('/watercan', watercanRoutes);
+app.use('vendorapplication',vendorapplicationRoutes);
+app.use('/user', userRoutes);
 
 // Listen
 const PORT = process.env.PORT || 3000;
