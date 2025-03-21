@@ -37,6 +37,7 @@ const vendorapplicationSchema = new mongoose.Schema({
         enum: ["pending", "approved", "rejected"],
         default: "pending",
       },
+
       delivery_start_time: {
         type: Date,
       },
