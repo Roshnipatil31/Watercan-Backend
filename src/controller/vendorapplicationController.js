@@ -112,6 +112,7 @@ const deleteApplication = async (req, res) => {
   }
 }
 
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
