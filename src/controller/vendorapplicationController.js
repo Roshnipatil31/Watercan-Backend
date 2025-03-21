@@ -1,8 +1,10 @@
 const vendorApplication = require("../model/vendorapplicationModel");
+const nodemailer = require("nodemailer");
+
 
 const createApplication = async (req, res) => {
   try {
-    const { name, email, state, address, phoneNumber, pincode, city ,delivery_start_time,delivery_end_time,deliverable_water_cans} = req.body;
+    const { name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time } = req.body;
 
     if (
       !name ||
@@ -11,10 +13,10 @@ const createApplication = async (req, res) => {
       !address ||
       !phoneNumber ||
       !pincode ||
-      !city||
-      !delivery_start_time||
-      !delivery_end_time||
-      !deliverable_water_cans
+      !city ||
+      !delivery_start_time ||
+      !delivery_end_time 
+      // !deliverable_water_cans
     ) {
       return res
         .status(400)
@@ -38,7 +40,7 @@ const createApplication = async (req, res) => {
       city,
       delivery_start_time,
       delivery_end_time,
-      deliverable_water_cans,
+      // deliverable_water_cans,
       status: "pending",
     });
     res.status(201).json({
@@ -56,51 +58,120 @@ const createApplication = async (req, res) => {
 };
 
 const getApllicationById = async (req, res) => {
-    
-    try {
-        const id = req.params.id;
-        const vendorapplication = await vendorApplication.findById(id);
-        if (!vendorapplication) {
-            return res.status(404).json({ success: false, message: "Application not found"
-                });
-                }
-                res.status(200).json({ success: true, message: "Application found", data:
-                    vendorapplication });
-                    } catch (error) {
-                        res.status(500).json({
-                            success: false,
-                            message: "Error finding application",
-                            error: error.message,
-                            });
-                            }
+
+  try {
+    const id = req.params.id;
+    const vendorapplication = await vendorApplication.findById(id);
+    if (!vendorapplication) {
+      return res.status(404).json({
+        success: false, message: "Application not found"
+      });
+    }
+    res.status(200).json({
+      success: true, message: "Application found", data:
+        vendorapplication
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error finding application",
+      error: error.message,
+    });
+  }
 }
 
 const getAllApplication = async (req, res) => {
-    try {
-        const vendorapplication = await vendorApplication.find();
-        res.status(200).json(vendorapplication);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-            }
-            
+  try {
+    const vendorapplication = await vendorApplication.find();
+    res.status(200).json(vendorapplication);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
 }
 
 const deleteApplication = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const vendorapplication = await vendorApplication.findByIdAndDelete(id);
-        if (!vendorapplication) {
-            return res.status(404).json({ success: false, message: "Application not found"
-                });
-                }
-                res.status(200).json({ success: true, message: "Application deleted", data:
-                    vendorapplication });
-                    } catch (error) {
-                        res.status(500).json({
-                            success: false,
-                            message: "Error deleting application",
-                            error: error.message,
-                            });
-                            }
+  try {
+    const id = req.params.id;
+    const vendorapplication = await vendorApplication.findByIdAndDelete(id);
+    if (!vendorapplication) {
+      return res.status(404).json({
+        success: false, message: "Application not found"
+      });
+    }
+    res.status(200).json({
+      success: true, message: "Application deleted", data:
+        vendorapplication
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deleting application",
+      error: error.message,
+    });
+  }
 }
-module.exports = { createApplication, getApllicationById, getAllApplication, deleteApplication };
+
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Function to send an approval email
+const sendApprovedEmail = async (email) => {
+  try {
+    let info = await transporter.sendMail({
+      from: `"Company Name" <${process.env.EMAIL_USER}>`, 
+      to: email, // Recipient email
+      subject: "Application Approved",
+      text: "Congratulations! Your application has been approved.",
+      html: "<b>Congratulations!</b> <p>Your application has been approved.</p>",
+    });
+
+    console.log(`Approved Email sent to ${email}: ${info.messageId}`);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+
+const approveApplication = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const vendorapplication = await vendorApplication.findByIdAndUpdate(id,
+      { status: "approved" },
+      { new: true }
+    );
+    if (!vendorapplication) {
+      return res.status(404).json({
+        success: false, message: "Application not found"
+      });
+    }
+
+    sendApprovedEmail(vendorapplication.email);
+
+    res.status(200).json({
+      success: true, message: "Application approved", data:
+        vendorapplication
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "application in approving",
+      error: error.message,
+    });
+  }
+
+}
+module.exports = { createApplication, 
+  getApllicationById, 
+  getAllApplication,
+   deleteApplication,
+   approveApplication,
+    sendApprovedEmail 
+  };
+
