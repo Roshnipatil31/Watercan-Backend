@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const connectDB = require('./config/dbconfig');
 const cors = require('cors');
+const messageRoutes = require("./src/routes/whatsappRoutes");
 
 const app = express();
 
@@ -19,9 +20,14 @@ const vendorapplicationRoutes = require('./src/routes/vendorapplicationRoutes');
 app.use('/watercan', watercanRoutes);
 app.use('/vendorapplication',vendorapplicationRoutes);
 app.use('/user', userRoutes);
+app.use("/api/messages", messageRoutes);
+
+app.get("/", (req, res) => {
+  res.send("🚀 WhatsApp Bot API is Running...");
+});
 
 // Listen
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+ const PORT = process.env.PORT || 3000;
+ app.listen(PORT, () => {
+   console.log(`Server running on port ${PORT}`);
+ });
