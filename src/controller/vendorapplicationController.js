@@ -138,7 +138,6 @@ const sendApprovedEmail = async (email) => {
   }
 };
 
-
 const approveApplication = async (req, res) => {
   try {
     const id = req.params.id;
@@ -167,11 +166,58 @@ const approveApplication = async (req, res) => {
   }
 
 }
+
+
+const sendRejectedEmail = async (email) => {
+  try {
+    let info = await transporter.sendMail({
+      from: `"Company Name" <${process.env.EMAIL_USER}>`, 
+      to: email, 
+      subject: "Application Rejected",
+      text: "Your application has been rejected.",
+      html: "<b>Sorry!</b> <p>Your application has been rejected.</p>",
+    });
+
+    console.log(`Rejected Email sent to ${email}: ${info.messageId}`);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+const rejectApplication = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const vendorapplication = await vendorApplication.findByIdAndUpdate(id,
+      { status: "rejected" },
+      { new: true }
+    );
+    if (!vendorapplication) {
+      return res.status(404).json({
+        success: false, message: "Application not found"
+      });
+    }
+
+    sendRejectedEmail(vendorapplication.email);
+
+    res.status(200).json({
+      success: true, message: "Application rejected", data:
+        vendorapplication
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting application",
+      error: error.message,
+    });
+  }
+}
 module.exports = { createApplication, 
   getApllicationById, 
   getAllApplication,
    deleteApplication,
    approveApplication,
-    sendApprovedEmail 
+    sendApprovedEmail,
+    sendRejectedEmail,
+    rejectApplication,
   };
 
