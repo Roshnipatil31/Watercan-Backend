@@ -12,13 +12,12 @@ const createWatercan = async (req, res) => {
 }
 
 const getAllWatercan = async (req, res) => {
-
     try {
         const watercan = await Watercan.find();
-        res.status(200).json(watercan);
+        res.status(200).json({ success: true, data: watercan });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
+};
 
-}
 module.exports = { createWatercan, getAllWatercan };
