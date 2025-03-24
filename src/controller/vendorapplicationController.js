@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 
 const createApplication = async (req, res) => {
   try {
-    const { name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time, deliverable_water_cans } = req.body;
+    const { name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time } = req.body;
 
     if (
       !name ||
@@ -15,8 +15,8 @@ const createApplication = async (req, res) => {
       !pincode ||
       !city ||
       !delivery_start_time ||
-      !delivery_end_time  ||
-      !deliverable_water_cans
+      !delivery_end_time  
+      // !deliverable_water_cans
     ) {
       return res
         .status(400)
@@ -40,7 +40,7 @@ const createApplication = async (req, res) => {
       city,
       delivery_start_time,
       delivery_end_time,
-      deliverable_water_cans,
+      // deliverable_water_cans,
       status: "pending",
     });
     res.status(201).json({
