@@ -16,11 +16,13 @@ app.use(cors());
 const userRoutes = require('./src/routes/userRoutes');
 const watercanRoutes = require('./src/routes/watercanRoutes');
 const vendorapplicationRoutes = require('./src/routes/vendorapplicationRoutes');
+const orderRoutes = require('./src/routes/orderRoutes');
 
 app.use('/watercan', watercanRoutes);
 app.use('/vendorapplication',vendorapplicationRoutes);
 app.use('/user', userRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/order", orderRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 WhatsApp Bot API is Running...");
