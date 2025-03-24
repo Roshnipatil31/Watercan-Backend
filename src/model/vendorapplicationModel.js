@@ -48,8 +48,8 @@ const vendorapplicationSchema = new mongoose.Schema({
     
       deliverable_water_cans: [
         {
-          MRP: { type: mongoose.Schema.Types.ObjectId, ref: "WaterCan", required: true },
-          capacityInLiters: { type: mongoose.Schema.Types.ObjectId, ref: "WaterCan", required: true },
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Watercan",
         }
       ],
   
