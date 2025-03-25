@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { watch } = require("./vendorapplicationModel");
+// const { watch } = require("./vendorapplicationModel");
 
 const orderSchema = new mongoose.Schema({
     user_id: {
@@ -11,6 +11,11 @@ const orderSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Watercan"
     },
+
+    vendor_id: {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Vendorapplication"
+    },
    
     totalAmount: {
         type: Number,
@@ -19,13 +24,20 @@ const orderSchema = new mongoose.Schema({
    
     orderStatus: {
         type: String,
-        enum: ["Order placed", "Shipped", "Delivered"],
+        enum: ["Order placed", "Shipped", "Delivered", "Cancelled"],
         default: "Order placed",
     },
+
+    timeSlot: {
+        type: String,
+        required: [true, "Time slot is required"],
+    },
+
     createdAt: {
         type: Date,
         default: Date.now,
     },
+
     updatedAt: {
         type: Date,
         default: Date.now,

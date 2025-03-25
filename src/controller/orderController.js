@@ -1,46 +1,37 @@
-const order = require("../model/orderModel");
+const mongoose = require("mongoose");
+const Order = require("../model/orderModel");
+const Vendorapplication = require("../model/vendorapplicationModel");
 
 const createOrder = async (req, res) => {
-    try{
-        const {user_id, watercan_id, totalAmount, orderStatus} = req.body;
+    try {
+        const { user_id, watercan_id, vendor_id, totalAmount, orderStatus, timeSlot } = req.body;
 
-        if(!user_id || !watercan_id || !totalAmount || !orderStatus){
+        if (!user_id || !watercan_id || !vendor_id || !totalAmount || !timeSlot) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const order = new order({ user_id, watercan_id, totalAmount, orderStatus });
+        const newOrder = new Order({ user_id, watercan_id, vendor_id, totalAmount, orderStatus, timeSlot });
+        await newOrder.save();
 
-        await order.save();
+        res.status(201).json({ message: "Order created successfully", data: newOrder });
 
-        res.status(201).json({ message: "Order created successfully", data: order });
-
-    }catch(error){
+    } catch (error) {
         res.status(500).json({ message: "Error creating order", error: error.message });
     }
-
-    };
-
-const getAllOrder = async (req, res) => {
-    try {
-        const order = await order.find();
-        res.status(200).json(order);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+};
 
 const getOrderById = async (req, res) => {
     try {
         const id = req.params.id;
-        const order = await order.findById(id);
+        const order = await Order.findById(id);
         if (!order) {
             return res.status(404).json({
                 success: false, message: "Order not found"
             });
         }
         res.status(200).json({
-            success: true, message: "Order found", data:
-                order
+            success: true, message: "Order found",
+            data: order
         });
     } catch (error) {
         res.status(500).json({
@@ -51,18 +42,50 @@ const getOrderById = async (req, res) => {
     }
 }
 
+const getAllOrder = async (req, res) => {
+    try {
+        const order = await Order.find();
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const getOrdersByVendor = async (req, res) => {
+    try {
+        const { vendor_id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(vendor_id)) {
+            return res.status(400).json({ success: false, message: "Invalid Vendor ID" });
+        }
+
+        // Fetch orders but exclude `vendor_id` from the response
+        const orders = await Order.find({ vendor_id: vendor_id })
+            .populate("user_id watercan_id")
+            .select("-vendor_id");
+
+        if (orders.length === 0) {
+            return res.status(404).json({ success: false, message: "No orders found for this vendor" });
+        }
+
+        res.status(200).json({ success: true, message: "Orders retrieved successfully", data: orders });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error fetching orders", error: error.message });
+    }
+};
+
 const updateOrder = async (req, res) => {
     try {
         const id = req.params.id;
-        const order = await order.findByIdAndUpdate(id, req.body, { new: true });
+        const order = await Order.findByIdAndUpdate(id, req.body, { new: true });
         if (!order) {
             return res.status(404).json({
                 success: false, message: "Order not found"
             });
         }
         res.status(200).json({
-            success: true, message: "Order updated", data:
-                order
+            success: true, message: "Order updated",
+            data: order
         });
     } catch (error) {
         res.status(500).json({
@@ -73,26 +96,5 @@ const updateOrder = async (req, res) => {
     }
 }
 
-const deleteOrder = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const order = await order.findByIdAndDelete(id);
-        if (!order) {
-            return res.status(404).json({
-                success: false, message: "Order not found"
-            });
-        }
-        res.status(200).json({
-            success: true, message: "Order deleted", data:
-                order
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Error deleting order",
-            error: error.message,
-        });
-    }
-}
 
-module.exports = { createOrder, getAllOrder, getOrderById, updateOrder, deleteOrder };
+module.exports = { createOrder, getOrderById, getAllOrder, getOrdersByVendor, updateOrder };
