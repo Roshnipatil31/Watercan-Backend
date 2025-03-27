@@ -1,35 +1,52 @@
-require('dotenv').config();
-const express = require('express');
-const connectDB = require('./config/dbconfig');
-const cors = require('cors');
-const messageRoutes = require("./src/routes/whatsappRoutes");
+require("dotenv").config();
+const express = require("express");
+const connectDB = require("./config/dbconfig");
+const cors = require("cors");
+const ngrok = require("ngrok"); // Import ngrok
+
+const { checkWhatsAppToken } = require("./src/services/whatsappService");
 
 const app = express();
 
 // Connect to MongoDB
 connectDB();
 
-// Middleware (e.g. body parser)
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-const userRoutes = require('./src/routes/userRoutes');
-const watercanRoutes = require('./src/routes/watercanRoutes');
-const vendorapplicationRoutes = require('./src/routes/vendorapplicationRoutes');
-const orderRoutes = require('./src/routes/orderRoutes');
+// Routes
+const whatsappRoutes = require("./src/routes/whatsappRoutes");
+const userRoutes = require("./src/routes/userRoutes");
+const watercanRoutes = require("./src/routes/watercanRoutes");
+const vendorapplicationRoutes = require("./src/routes/vendorapplicationRoutes");
+const orderRoutes = require("./src/routes/orderRoutes");
+const travelRoutes = require("./src/routes/travelRoutes");
 
-app.use('/watercan', watercanRoutes);
-app.use('/vendorapplication',vendorapplicationRoutes);
-app.use('/user', userRoutes);
-app.use("/api/messages", messageRoutes);
+app.use("/api/whatsapp", whatsappRoutes);
+app.use("/user", userRoutes);
+app.use("/watercan", watercanRoutes);
+app.use("/vendorapplication", vendorapplicationRoutes);
 app.use("/order", orderRoutes);
+app.use("/visitor", travelRoutes);
 
 app.get("/", (req, res) => {
   res.send("🚀 WhatsApp Bot API is Running...");
+  console.log("🚀 WhatsApp Bot API is Running...");
 });
 
-// Listen
- const PORT = process.env.PORT || 3000;
- app.listen(PORT, () => {
-   console.log(`Server running on port ${PORT}`);
- });
+// Validate WhatsApp API Token
+checkWhatsAppToken();
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, async () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+
+  // Start ngrok after the server starts
+  try {
+    const url = await ngrok.connect(PORT);
+    console.log(`🌍 ngrok tunnel opened at: ${url}`);
+  } catch (err) {
+    console.error("❌ Error starting ngrok:", err);
+  }
+});

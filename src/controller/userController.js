@@ -20,25 +20,40 @@ const transporter = nodemailer.createTransport({
 
 exports.createUSer = async (req, res) => {
     try {
-        const { name, email, role, address, phoneNumber,user_id } = req.body;
+        const { name, email, role, phoneNumber, user_id } = req.body;
+
         if (role == "admin") {
-            const user = await User.create({ name, email, role ,user_id});
-            res.status(201).json({ message: "admin created successfully", data: user });
-        } else if (role == "vendor") {
-            const user = await User.create({ name, email, role, phoneNumber,user_id });
-            res.status(201).json({ message: "vendor created successfully", data: user });
-        } else if (role == "user") {
-            const user = await User.create({ name, email, role, phoneNumber });
-            res.status(201).json({ message: "user created successfully", data: user });
-        } else {
-            res.status(400).json({ message: "Invalid role" });
-        }
+            const user = await User.create({ name, email, role, user_id });
+            return res.status(201).json({ message: "admin created successfully", data: user });
+        } 
+        
+        if (role == "vendor") {
+            const user = await User.create({ name, email, role, phoneNumber, user_id });
+            return res.status(201).json({ message: "vendor created successfully", data: user });
+        } 
+        
+        if (role == "user") {
+            // Fetch latest WhatsApp message from this phone number
+            const latestMessage = await Message.findOne({ from: phoneNumber }).sort({ timestamp: -1 });
+
+            // Extract data from WhatsApp message if available
+            const userData = {
+                name: latestMessage?.name || name,
+                phoneNumber: latestMessage?.phoneNumber || phoneNumber,
+                role: "user",
+                user_id: user_id
+            };
+
+            const user = await User.create(userData);
+            return res.status(201).json({ message: "user created successfully", data: user });
+        } 
+        
+        res.status(400).json({ message: "Invalid role" });
 
     } catch (error) {
         res.status(500).json({ message: "Error creating user", error: error.message });
     }
-
-}
+};
 exports.getUserById = async (req, res) => {
     try {
         const { user_id } = req.body; // Get user_id from request body
@@ -79,40 +94,3 @@ exports.forgotPassword = async (req, res) => {
     }
 };
 
-exports.sendopt = async (req, res) => {
-    try {
-        const { phoneNumber } = req.body;
-
-        if (!phoneNumber) {
-            return res.status(400).json({ message: "Phone number is required" });
-        }
-
-        res.status(200).json({
-            message: "Use Firebase Authentication on the frontend to send OTP",
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error handling OTP request", error: error.message });
-    }
-};
-
- exports.verifyOtp = async (req, res) => {
-     try {
-         const { idToken } = req.body;
- 
-         if (!idToken) {
-             return res.status(400).json({ message: "ID Token is required" });
-         }
- 
-         const auth = getAuth();
-         const decodedToken = await auth.verifyIdToken(idToken);
- 
-         res.status(200).json({
-             message: "OTP verified successfully",
-             uid: decodedToken.uid,
-             phoneNumber: decodedToken.phone_number,
-         });
-     } catch (error) {
-         res.status(500).json({ message: "OTP verification failed", error: error.message });
-     }
- };
- 
