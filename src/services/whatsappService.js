@@ -1,35 +1,54 @@
 const axios = require("axios");
 require("dotenv").config();
 
-const sendMessageToWhatsApp = async (to, body) => {
-    try {
-        console.log(`Simulated Sending Message to ${to}: ${body}`);
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-        // Uncomment the code below if you want to send actual messages
-        /*
+if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    console.error("❌ Missing WhatsApp API credentials in .env file");
+    process.exit(1);
+}
+
+const sendMessageToWhatsApp = async (to, payload) => {
+    try {
+        console.log(`📩 Sending Message to ${to}:`, JSON.stringify(payload, null, 2));
+
+        const url = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+        console.log(`🔍 API URL: ${url}`);
+
         const response = await axios.post(
-            "https://graph.facebook.com/v18.0/YOUR_PHONE_NUMBER_ID/messages",
-            {
-                messaging_product: "whatsapp",
-                to: to,
-                text: { body: body }
-            },
+            url,
+            { messaging_product: "whatsapp", to, ...payload },
             {
                 headers: {
-                    "Authorization": `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+                    "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
                     "Content-Type": "application/json"
                 }
             }
         );
 
-        console.log("Message sent:", response.data);
-        */
-
-        return { success: true, message: "Message sent (Simulation)" };
+        console.log("✅ Message sent:", response.data);
+        return { success: true, message: "Message sent successfully", data: response.data };
     } catch (error) {
-        console.error("Error sending message:", error.response?.data || error.message);
-        return { success: false, error: error.message };
+        console.error("❌ Error sending message:", error.response?.data || error.message);
+        return { success: false, error: error.response?.data || error.message };
     }
 };
 
-module.exports = { sendMessageToWhatsApp };
+const checkWhatsAppToken = async () => {
+    try {
+        const response = await axios.get(
+            `https://graph.facebook.com/v17.0/me?access_token=${WHATSAPP_ACCESS_TOKEN}`
+        );
+
+        if (response.data.id) {
+            console.log("✅ WhatsApp API Token is valid.");
+        } else {
+            console.error("❌ Invalid WhatsApp API Token.");
+        }
+    } catch (error) {
+        console.error("❌ Failed to validate WhatsApp API Token:", error.response?.data || error.message);
+    }
+};
+
+module.exports = { sendMessageToWhatsApp, checkWhatsAppToken };
