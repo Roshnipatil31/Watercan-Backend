@@ -1,14 +1,48 @@
 const Message = require("../model/whatsappModel");
- // ✅ Check if the correct path
-const { getNextStep } = require("../services/botFlow");  
-const { sendMessageToWhatsApp } = require("../services/whatsappService");
+const { getNextStep } = require("../services/botFlow");
+const { sendMessageToWhatsApp, recieveWhatsappMessage } = require("../services/whatsappService");
 
 const userSession = {}; // Store user session temporarily
 
-// ✅ Handle Incoming Messages (Webhook Simulation)
+/**
+ * ✅ Handle Incoming WhatsApp Webhook Messages
+ */
+const sentMessages = new Set(); // Store sent message IDs
+
+const handleIncomingMessage = async (req, res) => {
+    console.log("📩 FULL INCOMING WEBHOOK DATA:", JSON.stringify(req.body, null, 2));
+
+    const entry = req.body.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const value = changes?.value;
+    const messages = value?.messages || [];
+
+    for (const message of messages) {
+        const messageId = message.id;
+        const from = message.from;
+        const body = message.text?.body?.trim();
+
+        if (sentMessages.has(messageId)) {
+            console.log("📤 Outgoing message detected:", body);
+            sentMessages.delete(messageId); // Remove after detecting
+        } else {
+            console.log("📩 Incoming message from", from, ":", body);
+            await sendMessageToWhatsApp(from, `You said: "${body}"`);
+        }
+    }
+
+    res.sendStatus(200);
+};
+
+
+/**
+ * ✅ Handle WhatsApp Webhook Bot Flow
+ */
 const handleWebhook = async (req, res) => {
     try {
         const data = req.body;
+        console.log("📩 Incoming Webhook Data:", JSON.stringify(data, null, 2));
+
         if (!data.entry || !data.entry[0].changes[0].value.messages) {
             return res.status(400).json({ error: "Invalid webhook data" });
         }
@@ -21,58 +55,58 @@ const handleWebhook = async (req, res) => {
         const from = messageEntry.from;
         const body = messageEntry.text.body.trim();
 
-        console.log(`📩 Received: ${body} from ${from}`);
+        console.log(`📩 Received: "${body}" from ${from}`);
 
-        // Save message to database
-        try {
-            await Message.create({ from, body });
-        } catch (saveError) {
-            return res.status(500).json({ error: "Failed to save message" });
+        await Message.create({ from, body });
+
+        // Reset session on "hi"
+        if (body.toLowerCase() === "hi") {
+            userSession[from] = "start";
         }
 
-        // Check or initialize user session step
         const currentStep = userSession[from] || "start";
+        let nextStepData = getNextStep(currentStep, body, userSession[from]);
 
-        // Get next step based on bot flow
-        const nextStepData = getNextStep(currentStep, body);
-
-        // Store user’s new step correctly
-        userSession[from] = typeof nextStepData.next === "string" ? nextStepData.next : "start";
-
-        // Send bot response
-        try {
-            await sendMessageToWhatsApp(from, nextStepData.message);
-        } catch (sendError) {
-            return res.status(500).json({ error: "Failed to send message" });
+        if (!nextStepData || !nextStepData.message) {
+            return res.status(400).json({ error: "Invalid response, no next step found" });
         }
 
-                res.status(200).json({
-            from: from,
+        userSession[from] = nextStepData.next || "start";
+
+        await sendMessageToWhatsApp(from, nextStepData.message);
+
+        res.status(200).json({
+            from,
             receivedMessage: body,
             botResponse: nextStepData.message,
-            nextStep: userSession[from]
+            nextStep: userSession[from],
         });
     } catch (error) {
+        console.error("❌ Internal Server Error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
 
-// ✅ Simulated Send Message Function (for Testing via Postman)
+/**
+ * ✅ Send Manual WhatsApp Messages
+ */
 const sendMessage = async (req, res) => {
     try {
+        console.log("📩 Received request body:", req.body);
+
         const { to, body } = req.body;
 
         if (!to || !body) {
             return res.status(400).json({ error: "Missing recipient number or message body" });
         }
 
-        console.log(`📩 Simulated Sending Message to ${to}: ${body}`);
+        console.log(`📩 Sending WhatsApp message to ${to}: ${body}`);
+
+        await sendMessageToWhatsApp(to, body);
 
         res.status(200).json({
-            from: from,
-            receivedMessage: body,
-            botResponse: nextStepData.message,
-            nextStep: userSession[from]
+            success: true,
+            message: "Message sent successfully!",
         });
     } catch (error) {
         console.error("❌ Error sending message:", error);
@@ -80,5 +114,5 @@ const sendMessage = async (req, res) => {
     }
 };
 
-// ✅ Export the functions correctly
-module.exports = { handleWebhook, sendMessage };
+// ✅ Export All Functions
+module.exports = { handleIncomingMessage, handleWebhook, sendMessage };
