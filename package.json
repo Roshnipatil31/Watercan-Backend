@@ -19,7 +19,7 @@
     "mongoose": "^8.12.1",
     "ngrok": "^5.0.0-beta.2",
     "nodemailer": "^6.10.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
      "razorpay": "^2.9.6"
   }
 }
