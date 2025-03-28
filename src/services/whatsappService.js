@@ -1,44 +1,47 @@
 const axios = require("axios");
 require("dotenv").config();
 
-const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID; // Load once at the top
+const accessToken = process.env.WHATSAPP_ACCESS_TOKEN; // Load once at the top
 
-if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-    console.error("❌ Missing WhatsApp API credentials in .env file");
-    process.exit(1);
-}
+console.log("📌 Phone Number ID:", phoneNumberId || "❌ Not Loaded");
+console.log("📌 Access Token:", accessToken ? "✅ Loaded" : "❌ Not Loaded");
 
-const sendMessageToWhatsApp = async (to, payload) => {
+const sendMessageToWhatsApp = async (to, message) => {
     try {
-        console.log(`📩 Sending Message to ${to}:`, JSON.stringify(payload, null, 2));
-
-        const url = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-        console.log(`🔍 API URL: ${url}`);
+        if (!phoneNumberId) throw new Error("❌ PHONE_NUMBER_ID is missing in environment variables");
+        if (!accessToken) throw new Error("❌ ACCESS_TOKEN is missing in environment variables");
 
         const response = await axios.post(
-            url,
-            { messaging_product: "whatsapp", to, ...payload },
+            `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`,
+            {
+                messaging_product: "whatsapp",
+                to, // Use the function parameter, not a hardcoded number
+                type: "text",
+                text: { body: message }
+            },
             {
                 headers: {
-                    "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                    "Authorization": `Bearer ${accessToken}`, // Fixed reference
                     "Content-Type": "application/json"
                 }
             }
         );
 
-        console.log("✅ Message sent:", response.data);
-        return { success: true, message: "Message sent successfully", data: response.data };
+        console.log("✅ Message sent successfully:", response.data);
+        return response.data;
     } catch (error) {
         console.error("❌ Error sending message:", error.response?.data || error.message);
-        return { success: false, error: error.response?.data || error.message };
+        throw new Error("Failed to send WhatsApp message");
     }
 };
 
 const checkWhatsAppToken = async () => {
     try {
+        if (!accessToken) throw new Error("❌ ACCESS_TOKEN is missing in environment variables");
+
         const response = await axios.get(
-            `https://graph.facebook.com/v17.0/me?access_token=${WHATSAPP_ACCESS_TOKEN}`
+            `https://graph.facebook.com/v18.0/me?access_token=${accessToken}`
         );
 
         if (response.data.id) {
@@ -51,4 +54,15 @@ const checkWhatsAppToken = async () => {
     }
 };
 
-module.exports = { sendMessageToWhatsApp, checkWhatsAppToken };
+const recieveWhatsappMessage = async (req, res) => {
+    try {
+        console.log("📩 Incoming Webhook Data:", JSON.stringify(req.body, null, 2));
+        res.sendStatus(200);
+    } catch (error) {
+        console.error("❌ Error handling incoming message:", error);
+        res.status(500).json({ error: "Failed to process incoming message" });
+    }
+};
+
+module.exports = { sendMessageToWhatsApp, checkWhatsAppToken, recieveWhatsappMessage };
+
