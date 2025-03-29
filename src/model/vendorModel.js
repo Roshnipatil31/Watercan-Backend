@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const vendorapplicationSchema = new mongoose.Schema({
+const vendorSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, "Name is required"],
@@ -35,12 +35,6 @@ const vendorapplicationSchema = new mongoose.Schema({
         type: String,
         required: [true, "State is required"],
     },
-   
-    status: {
-        type: String,
-        enum: ["pending", "approved", "rejected"],
-        default: "pending",
-      },
 
       delivery_start_time: {
         type: Date,
@@ -64,4 +58,4 @@ const vendorapplicationSchema = new mongoose.Schema({
     
 });
     
-module.exports = mongoose.model("Vendorapplication", vendorapplicationSchema);
+module.exports = mongoose.model("vendor", vendorSchema);

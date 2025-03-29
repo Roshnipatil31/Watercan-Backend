@@ -9,9 +9,8 @@ const userSchema = new mongoose.Schema(
     },
     user_id: { 
       type: String, 
-      // required: true, 
       unique: true, 
-      default: uuidv4 }, // Auto-generate user_id
+      default: uuidv4 },
 
     email: {
       type: String,
@@ -32,7 +31,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 
