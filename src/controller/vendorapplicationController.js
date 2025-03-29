@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 
 const createApplication = async (req, res) => {
   try {
-    const {user_id, name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time,deliverable_water_cans} = req.body;
+    const {user_id, proof_image,name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time,deliverable_water_cans} = req.body;
 console.log(req.body);
     if (
       !user_id ||
@@ -17,13 +17,13 @@ console.log(req.body);
       !city ||
       !delivery_start_time ||
       !delivery_end_time  ||
-      !deliverable_water_cans
+      !deliverable_water_cans ||
+      !proof_image
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required." });
     }
-    console.log(req.body);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -44,6 +44,7 @@ console.log(req.body);
       delivery_start_time,
       delivery_end_time,
       deliverable_water_cans,
+      proof_image,
       status: "pending",
     });
     res.status(201).json({
@@ -141,34 +142,7 @@ const sendApprovedEmail = async (email) => {
   }
 };
 
-// const approveApplication = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     const vendorapplication = await vendorApplication.findByIdAndUpdate(id,
-//       { status: "approved" },
-//       { new: true }
-//     );
-//     if (!vendorapplication) {
-//       return res.status(404).json({
-//         success: false, message: "Application not found"
-//       });
-//     }
 
-//     sendApprovedEmail(vendorapplication.email);
-
-//     res.status(200).json({
-//       success: true, message: "Application approved", data:
-//         vendorapplication
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: "application in approving",
-//       error: error.message,
-//     });
-//   }
-
-// }
 const Vendor = require("../model/vendorModel"); // Import the vendor model
 
 const approveApplication = async (req, res) => {
