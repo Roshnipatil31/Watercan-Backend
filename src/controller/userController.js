@@ -93,4 +93,18 @@ exports.forgotPassword = async (req, res) => {
         res.status(500).json({ message: "Error sending password reset email", error: error.message });
     }
 };
+exports.getUserByFirebaseId = async (req, res) => {
+    try {
+        const { UID } = req.params; 
+
+        const user = await User.findOne({ user_id: UID });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User found", data: user });
+    } catch (error) {
+        res.status(500).json({ message: "Error finding user", error: error.message });
+    }
+};
 
