@@ -50,6 +50,10 @@ const vendorSchema = new mongoose.Schema({
           ref: "Watercan",
         }
       ],
+
+      proof_image: {
+        type: String,
+      },
   
     createdAt: {
         type: Date,

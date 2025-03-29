@@ -56,6 +56,11 @@ const vendorapplicationSchema = new mongoose.Schema({
           ref: "Watercan",
         }
       ],
+
+      proof_image: {
+        type: String,
+        required: [true, "Proof image is required"],
+      },
   
     createdAt: {
         type: Date,
