@@ -20,4 +20,36 @@ const getAllWatercan = async (req, res) => {
     }
 };
 
-module.exports = { createWatercan, getAllWatercan };
+const getWatercanById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const watercan = await Watercan.findById(id);
+        if (!watercan) {
+            return res.status(404).json({ success: false, message: "Watercan not found" });
+        }
+        res.status(200).json({ success: true, data: watercan });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const deleetWatercanById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const watercan = await Watercan.findByIdAndDelete(id);
+        if (!watercan) {
+            
+            return res.status(404).json({ success: false, message: "Watercan not found" });
+            }
+            res.status(200).json({ success: true, message: "Watercan deleted successfully"
+                });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    };
+
+module.exports = { createWatercan,
+     getAllWatercan,
+     getWatercanById,
+     deleetWatercanById
+     };

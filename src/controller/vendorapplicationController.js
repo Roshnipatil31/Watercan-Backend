@@ -4,9 +4,10 @@ const nodemailer = require("nodemailer");
 
 const createApplication = async (req, res) => {
   try {
-    const { name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time } = req.body;
-
+    const {user_id, name, email, state, address, phoneNumber, pincode, city, delivery_start_time, delivery_end_time,deliverable_water_cans} = req.body;
+console.log(req.body);
     if (
+      !user_id ||
       !name ||
       !email ||
       !state ||
@@ -15,13 +16,14 @@ const createApplication = async (req, res) => {
       !pincode ||
       !city ||
       !delivery_start_time ||
-      !delivery_end_time  
-      // !deliverable_water_cans
+      !delivery_end_time  ||
+      !deliverable_water_cans
     ) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required." });
     }
+    console.log(req.body);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -33,6 +35,7 @@ const createApplication = async (req, res) => {
     const vendorapplication = await vendorApplication.create({
       name,
       email,
+      user_id,
       state,
       address,
       phoneNumber,
@@ -40,7 +43,7 @@ const createApplication = async (req, res) => {
       city,
       delivery_start_time,
       delivery_end_time,
-      // deliverable_water_cans,
+      deliverable_water_cans,
       status: "pending",
     });
     res.status(201).json({
@@ -138,34 +141,98 @@ const sendApprovedEmail = async (email) => {
   }
 };
 
+// const approveApplication = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const vendorapplication = await vendorApplication.findByIdAndUpdate(id,
+//       { status: "approved" },
+//       { new: true }
+//     );
+//     if (!vendorapplication) {
+//       return res.status(404).json({
+//         success: false, message: "Application not found"
+//       });
+//     }
+
+//     sendApprovedEmail(vendorapplication.email);
+
+//     res.status(200).json({
+//       success: true, message: "Application approved", data:
+//         vendorapplication
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "application in approving",
+//       error: error.message,
+//     });
+//   }
+
+// }
+const Vendor = require("../model/vendorModel"); // Import the vendor model
+
 const approveApplication = async (req, res) => {
   try {
-    const id = req.params.id;
-    const vendorapplication = await vendorApplication.findByIdAndUpdate(id,
-      { status: "approved" },
-      { new: true }
-    );
-    if (!vendorapplication) {
-      return res.status(404).json({
-        success: false, message: "Application not found"
+    const { application_id } = req.params;
+
+    if (!application_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Application ID is required." });
+    }
+
+    const application = await vendorApplication.findById(application_id);
+
+    if (!application) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Application not found." });
+    }
+
+    // Check if the application is already approved
+    if (application.status === "approved") {
+      return res.status(400).json({
+        success: false,
+        message: "Application is already approved.",
       });
     }
 
-    sendApprovedEmail(vendorapplication.email);
+    // Create a new vendor record in the vendor collection
+    const newVendor = await Vendor.create({
+      name: application.name,
+      email: application.email,
+      user_id: application.user_id,
+      state: application.state,
+      address: application.address,
+      phoneNumber: application.phoneNumber,
+      pincode: application.pincode,
+      city: application.city,
+      delivery_start_time: application.delivery_start_time,
+      delivery_end_time: application.delivery_end_time,
+      deliverable_water_cans: application.deliverable_water_cans,
+    });
 
-    res.status(200).json({
-      success: true, message: "Application approved", data:
-        vendorapplication
+    // Update the application status to 'approved'
+    application.status = "approved";
+    await application.save();
+
+    // Return success response
+    res.status(201).json({
+      success: true,
+      message: "Application approved and vendor created successfully!",
+      data: newVendor,
     });
   } catch (error) {
+    console.error("Error approving application:", error);
     res.status(500).json({
       success: false,
-      message: "application in approving",
+      message: "Error approving application",
       error: error.message,
     });
   }
+};
 
-}
+module.exports = { approveApplication };
 
 
 const sendRejectedEmail = async (email) => {
