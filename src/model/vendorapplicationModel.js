@@ -31,6 +31,10 @@ const vendorapplicationSchema = new mongoose.Schema({
         type: String,
         required: [true, "City is required"],
     },
+    area: {
+        type: String,
+        required: [true, "Area is required"],
+    },
     state: {
         type: String,
         required: [true, "State is required"],
