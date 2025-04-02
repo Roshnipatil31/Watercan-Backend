@@ -8,5 +8,6 @@ router.get("/getAllApplications", vendorapplication.getAllApplication);
 router.delete("/deleteVendorApplication/:id", vendorapplication.deleteApplication);
 router.put("/approveVendorApplication/:application_id", vendorapplication.approveApplication);
 router.put("/rejectVendorApplication/:id", vendorapplication.rejectApplication);
+router.post("/api/pincode", vendorapplication.pincodeDetails)
 
 module.exports = router;

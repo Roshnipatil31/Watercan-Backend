@@ -1,5 +1,7 @@
 const vendorApplication = require("../model/vendorapplicationModel");
 const nodemailer = require("nodemailer");
+require("dotenv").config();
+const axios = require("axios");
 
 
 const createApplication = async (req, res) => {
@@ -254,6 +256,53 @@ const rejectApplication = async (req, res) => {
     });
   }
 }
+
+
+const pincodeDetails = async (req, res) => {
+  try {
+    const { search } = req.body;
+
+    if (!search) {
+      return res.status(400).json({ error: "Search field is required" });
+    }
+
+    console.log("Fetching details for pincode:", search);
+
+    if (!process.env.RAPIDAPI_KEY) {
+      console.error("❌ RAPIDAPI_KEY is missing in .env file");
+      return res.status(500).json({ error: "Server configuration error: API key missing" });
+    }
+
+    // ✅ Primary API - RapidAPI
+    let response;
+    try {
+      response = await axios.get(`https://pincode.p.rapidapi.com/v1/pincode/${search}`, {
+        headers: {
+          "x-rapidapi-host": "pincode.p.rapidapi.com",
+          "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+        },
+      });
+    } catch (rapidApiError) {
+      console.error("⚠️ RapidAPI failed, trying fallback API...");
+    }
+
+    // ✅ Fallback API - India Post API
+    if (!response || !response.data || response.data.length === 0) {
+      response = await axios.get(`https://api.postalpincode.in/pincode/${search}`);
+    }
+
+    console.log("Pincode API Response:", response.data);
+
+    if (!response.data || response.data.length === 0) {
+      return res.status(404).json({ error: "Pincode not found" });
+    }
+
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching pincode details:", error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({ error: "Failed to fetch pincode details" });
+  }
+};
 module.exports = { createApplication, 
   getApllicationById, 
   getAllApplication,
@@ -262,5 +311,6 @@ module.exports = { createApplication,
     sendApprovedEmail,
     sendRejectedEmail,
     rejectApplication,
+    pincodeDetails
   };
 
