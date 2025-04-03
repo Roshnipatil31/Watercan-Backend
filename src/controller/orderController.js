@@ -44,12 +44,21 @@ const getOrderById = async (req, res) => {
 
 const getAllOrder = async (req, res) => {
     try {
-        const order = await Order.find();
-        res.status(200).json(order);
+        const orders = await Order.find()
+
+            .populate({ path: "user_id", select: "name phoneNumber" }) 
+            .populate({ path: "watercan_id", select: "capacityInLiters" }) 
+            .populate({ path: "vendor_id", select: "name", model: Vendorapplication }); // Fetch vendor name
+
+        if (orders.length === 0) {
+            return res.status(404).json({ success: false, message: "No orders found" });
+        }
+
+        res.status(200).json({ success: true, message: "Orders retrieved successfully", data: orders });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ success: false, message: "Error fetching orders", error: error.message });
     }
-}
+};
 
 const getOrdersByVendor = async (req, res) => {
     try {
@@ -102,10 +111,4 @@ const updateOrder = async (req, res) => {
         });
     }
 }
-
-
-
-
-
-
 module.exports = { createOrder, getOrderById, getAllOrder, getOrdersByVendor, updateOrder };
