@@ -43,13 +43,13 @@ app.get("/", (req, res) => {
 });
 
 // Validate WhatsApp API Token
-checkWhatsAppToken();
+// checkWhatsAppToken();
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
 
-  // // Start ngrok after the server starts
+
   // try {
   //   const url = await ngrok.connect(PORT);
   //   console.log(`🌍 ngrok tunnel opened at: ${url}`);
