@@ -39,6 +39,14 @@ const vendorapplicationSchema = new mongoose.Schema({
         type: String,
         required: [true, "State is required"],
     },
+
+    latitude: {
+        type: Number,
+    },
+
+    longitude: {
+        type: Number,
+    },
    
     status: {
         type: String,
