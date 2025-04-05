@@ -6,7 +6,7 @@ const axios = require("axios");
 
 const createApplication = async (req, res) => {
   try {
-    const {user_id, proof_image,name, email, state, address, phoneNumber,area, pincode, city, delivery_start_time, delivery_end_time,deliverable_water_cans} = req.body;
+    const {user_id, proof_image,name, email, state, address, phoneNumber,area, pincode, city, delivery_start_time, delivery_end_time,deliverable_water_cans, latitude, longitude} = req.body;
 console.log(req.body);
     if (
       !user_id ||
@@ -21,7 +21,9 @@ console.log(req.body);
       !delivery_end_time  ||
       !deliverable_water_cans ||
       !proof_image ||
-      !area
+      !area ||
+      !latitude ||
+      !longitude
     ) {
       return res
         .status(400)
@@ -50,6 +52,8 @@ console.log(req.body);
       proof_image,
       status: "pending",
       area,
+      latitude,
+      longitude,
     });
     res.status(201).json({
       success: true,
@@ -276,9 +280,9 @@ const pincodeDetails = async (req, res) => {
     // ✅ Primary API - RapidAPI
     let response;
     try {
-      response = await axios.get(`https://pincode.p.rapidapi.com/v1/pincode/${search}`, {
+      response = await axios.get(`https://india-pincode-with-latitude-and-longitude.p.rapidapi.com/api/v1/pincode/${search}`, {
         headers: {
-          "x-rapidapi-host": "pincode.p.rapidapi.com",
+          "x-rapidapi-host": "india-pincode-with-latitude-and-longitude.p.rapidapi.com",
           "x-rapidapi-key": process.env.RAPIDAPI_KEY,
         },
       });
@@ -303,6 +307,7 @@ const pincodeDetails = async (req, res) => {
     res.status(error.response?.status || 500).json({ error: "Failed to fetch pincode details" });
   }
 };
+
 module.exports = { createApplication, 
   getApllicationById, 
   getAllApplication,
