@@ -13,7 +13,7 @@ const orderSchema = new mongoose.Schema({
 
     vendor_id: {
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Vendorapplication"
+        ref:"Vendor"
     },
    
     totalAmount: {

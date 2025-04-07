@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Order = require("../model/orderModel");
-const Vendorapplication = require("../model/vendorapplicationModel");
+const Vendor = require("../model/vendorModel");
 
 const createOrder = async (req, res) => {
     try {
@@ -19,6 +19,69 @@ const createOrder = async (req, res) => {
         res.status(500).json({ message: "Error creating order", error: error.message });
     }
 };
+
+const CreateOrderByVendorUserId = async (req, res) => {
+    try {
+        const { user_id, watercan_id, vendor_id, totalAmount, orderStatus, timeSlot } = req.body;
+
+        if (!user_id || !watercan_id || !vendor_id || !totalAmount || !timeSlot) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Find the Vendorapplication using the vendor's user_id
+        const vendor = await Vendor.findOne({ user_id: vendor_id });
+
+        if (!vendor) {
+            return res.status(404).json({ message: "Vendor not found with this user_id" });
+        }
+
+        // Check if the vendor can deliver the requested watercan
+        const canDeliver = vendor.deliverable_water_cans.includes(watercan_id);
+
+        if (!canDeliver) {
+            return res.status(403).json({ message: "Vendor does not deliver this water can" });
+        }
+
+        const newOrder = new Order({
+            user_id,
+            watercan_id,
+            vendor_id, // This is the vendor's user_id
+            totalAmount,
+            orderStatus,
+            timeSlot
+        });
+
+        await newOrder.save();
+
+        res.status(201).json({ message: "Order created successfully", data: newOrder });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error creating order", error: error.message });
+    }
+};
+
+const getOrdersByVendorUserId = async (req, res) => {
+    try {
+        const { vendor_id } = req.params;
+
+        if (!vendor_id) {
+            return res.status(400).json({ message: "Vendor user_id is required" });
+        }
+
+        // Since vendor_id in Order is stored as the vendor's user_id
+        const orders = await Order.find({ vendor_id })
+            .populate("user_id", "name email phoneNumber")
+            .populate("watercan_id", "name price Brand capacityInLiters")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ message: "Orders fetched successfully", data: orders });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching vendor orders", error: error.message });
+    }
+};
+
+  
+
 
 const getOrderById = async (req, res) => {
     try {
@@ -111,4 +174,4 @@ const updateOrder = async (req, res) => {
         });
     }
 }
-module.exports = { createOrder, getOrderById, getAllOrder, getOrdersByVendor, updateOrder };
+module.exports = { createOrder, getOrderById, getAllOrder, getOrdersByVendor, updateOrder, CreateOrderByVendorUserId, getOrdersByVendorUserId };
