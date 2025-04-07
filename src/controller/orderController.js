@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Order = require("../model/orderModel");
-const Vendorapplication = require("../model/vendorapplicationModel");
+const Vendor = require("../model/vendorModel");
 
 const createOrder = async (req, res) => {
     try {
@@ -8,6 +8,12 @@ const createOrder = async (req, res) => {
 
         if (!user_id || !watercan_id || !vendor_id || !totalAmount || !timeSlot) {
             return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Verify if the vendor exists and has an approved status
+        const vendor = await Vendor.findById(vendor_id);
+        if (!vendor) {
+            return res.status(404).json({ message: "Vendor not found" });
         }
 
         const newOrder = new Order({ user_id, watercan_id, vendor_id, totalAmount, orderStatus, timeSlot });
@@ -48,7 +54,7 @@ const getAllOrder = async (req, res) => {
 
             .populate({ path: "user_id", select: "name phoneNumber" }) 
             .populate({ path: "watercan_id", select: "capacityInLiters" }) 
-            .populate({ path: "vendor_id", select: "name", model: Vendorapplication }); // Fetch vendor name
+            .populate({ path: "vendor_id", select: "name", model: Vendor }); // Fetch vendor name
 
         if (orders.length === 0) {
             return res.status(404).json({ success: false, message: "No orders found" });
@@ -75,7 +81,7 @@ const getOrdersByVendor = async (req, res) => {
             .populate({
                 path: "vendor_id",
                 select: "name",
-                model: Vendorapplication,
+                model: Vendor,
             });
 
         if (orders.length === 0) {

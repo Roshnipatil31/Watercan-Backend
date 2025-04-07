@@ -180,6 +180,7 @@ const approveApplication = async (req, res) => {
       name: application.name,
       email: application.email,
       user_id: application.user_id,
+      area: application.area,
       state: application.state,
       address: application.address,
       phoneNumber: application.phoneNumber,
@@ -188,6 +189,9 @@ const approveApplication = async (req, res) => {
       delivery_start_time: application.delivery_start_time,
       delivery_end_time: application.delivery_end_time,
       deliverable_water_cans: application.deliverable_water_cans,
+      proof_image: application.proof_image,
+      lattitude: application.latitude,
+      longitude: application.longitude,
     });
 
     // Update the application status to 'approved'
