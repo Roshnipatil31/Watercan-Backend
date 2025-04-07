@@ -24,6 +24,7 @@ const orderRoutes = require('./src/routes/orderRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const whatsappRoutes = require("./src/routes/whatsappRoutes");
 const travelRoutes = require("./src/routes/travelRoutes");
+const vendorRoutes = require("./src/routes/vendorRoutes");
 
 
 
@@ -34,6 +35,7 @@ app.use("/vendorapplication", vendorapplicationRoutes);
 app.use("/order", orderRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/visitor", travelRoutes);
+app.use("/vendor", vendorRoutes);
 
 
 

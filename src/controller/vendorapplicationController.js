@@ -92,6 +92,30 @@ const getApllicationById = async (req, res) => {
   }
 }
 
+const getApplicationByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming userId is passed as a URL parameter
+    const vendorapplication = await vendorApplication.find({ user_id: userId });
+    if (!vendorapplication || vendorapplication.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No application found for this user",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "Application found",
+      data: vendorapplication,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error finding application",
+      error: error.message,
+    });
+  }
+}
+
 const getAllApplication = async (req, res) => {
   try {
     const vendorapplication = await vendorApplication.find();
@@ -316,6 +340,7 @@ module.exports = { createApplication,
     sendApprovedEmail,
     sendRejectedEmail,
     rejectApplication,
-    pincodeDetails
+    pincodeDetails,
+    getApplicationByUserId
   };
 

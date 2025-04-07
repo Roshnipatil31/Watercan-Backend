@@ -41,8 +41,32 @@ const getAllVendors = async (req, res) => {
         });
     }
 }
+const getVendorsByUserId = async (req, res) => {
+    try {
+        const userId = req.params.userId; // Assuming userId is passed as a URL parameter
+        const vendors = await Vendor.find({ user_id: userId });
+        if (!vendors || vendors.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No vendors found for this user",
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Vendors found",
+            data: vendors,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error finding vendors",
+            error: error.message,
+        });
+    }
+}
 
 module.exports = {
     getVendorById,
-    getAllVendors
+    getAllVendors,
+    getVendorsByUserId
 };
