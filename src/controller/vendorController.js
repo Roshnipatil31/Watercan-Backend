@@ -65,8 +65,42 @@ const getVendorsByUserId = async (req, res) => {
     }
 }
 
+const updateVendorsByUserId = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const updateData = req.body;
+
+        const updatedVendor = await Vendor.findOneAndUpdate(
+            { user_id: userId },
+            updateData,
+            { new: true }
+        );
+
+        if (!updatedVendor) {
+            return res.status(404).json({
+                success: false,
+                message: "Vendor not found for this user",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Vendor updated successfully",
+            data: updatedVendor,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error updating vendor",
+            error: error.message,
+        });
+    }
+};
+
+
 module.exports = {
     getVendorById,
     getAllVendors,
-    getVendorsByUserId
+    getVendorsByUserId,
+    updateVendorsByUserId
 };
