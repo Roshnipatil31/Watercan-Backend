@@ -95,9 +95,40 @@ const restrictVendor = async (req, res) => {
 };
 
 
+const unrestrictVendor = async (req, res) => {
+    try {
+        const id = req.params.id;
+        // Update the vendor's restricted flag to false and return the updated document
+        const vendor = await Vendor.findByIdAndUpdate(
+            id,
+            { restricted: false },
+            { new: true } // Option to return the updated document
+        );
+        if (!vendor) {
+            return res.status(404).json({
+                success: false,
+                message: "Vendor not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Vendor has been unrestricted successfully",
+            data: vendor
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error unrestricting vendor",
+            error: error.message,
+        });
+    }
+}
+
+
 module.exports = {
     getVendorById,
     getAllVendors,
     getVendorsByUserId,
-    restrictVendor
+    restrictVendor,
+    unrestrictVendor
 };

@@ -6,4 +6,5 @@ router.get("/getVendorById/:id", vendorController.getVendorById);
 router.get("/getAllVendors", vendorController.getAllVendors);
 router.get("/getVendorsByUserId/:userId", vendorController.getVendorsByUserId);
 router.put("/restrictVendor/:id", vendorController.restrictVendor);
+router.put("/unrestrictVendor/:id", vendorController.unrestrictVendor);
 module.exports = router;
