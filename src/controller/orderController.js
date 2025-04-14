@@ -117,7 +117,7 @@ const getAllOrder = async (req, res) => {
 
             .populate({ path: "user_id", select: "name phoneNumber" }) 
             .populate({ path: "watercan_id", select: "capacityInLiters" }) 
-            .populate({ path: "vendor_id", select: "name", model: Vendor }); // Fetch vendor name
+            .populate({ path: "vendor_id", select: "name", model: "vendor" }); // Fetch vendor name
 
         if (orders.length === 0) {
             return res.status(404).json({ success: false, message: "No orders found" });
