@@ -7,4 +7,5 @@ router.get("/getAllVendors", vendorController.getAllVendors);
 router.get("/getVendorsByUserId/:userId", vendorController.getVendorsByUserId);
 router.put("/restrictVendor/:id", vendorController.restrictVendor);
 router.put("/unrestrictVendor/:id", vendorController.unrestrictVendor);
+router.put("/updateVendorsByUserId/:userId", vendorController.updateVendorsByUserId);
 module.exports = router;
