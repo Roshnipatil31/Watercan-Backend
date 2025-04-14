@@ -65,6 +65,66 @@ const getVendorsByUserId = async (req, res) => {
     }
 }
 
+const restrictVendor = async (req, res) => {
+    try {
+        const id = req.params.id;
+        // Update the vendor's restricted flag to true and return the updated document
+        const vendor = await Vendor.findByIdAndUpdate(
+            id,
+            { restricted: true },
+            { new: true } // Option to return the updated document
+        );
+        if (!vendor) {
+            return res.status(404).json({
+                success: false,
+                message: "Vendor not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Vendor has been restricted successfully",
+            data: vendor
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error restricting vendor",
+            error: error.message,
+        });
+    }
+};
+
+
+const unrestrictVendor = async (req, res) => {
+    try {
+        const id = req.params.id;
+        // Update the vendor's restricted flag to false and return the updated document
+        const vendor = await Vendor.findByIdAndUpdate(
+            id,
+            { restricted: false },
+            { new: true } // Option to return the updated document
+        );
+        if (!vendor) {
+            return res.status(404).json({
+                success: false,
+                message: "Vendor not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Vendor has been unrestricted successfully",
+            data: vendor
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error unrestricting vendor",
+            error: error.message,
+        });
+    }
+}
+
+
 const updateVendorsByUserId = async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -102,5 +162,8 @@ module.exports = {
     getVendorById,
     getAllVendors,
     getVendorsByUserId,
+    restrictVendor,
+    unrestrictVendor,
+
     updateVendorsByUserId
 };
